@@ -1,7 +1,12 @@
 package watermarkgui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.MenuBar;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -11,6 +16,7 @@ import java.io.IOException;
 import java.security.KeyStore.PrivateKeyEntry;
 
 import javax.imageio.ImageIO;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -20,6 +26,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JTextField;
 
 import org.imgscalr.Scalr;
 
@@ -60,12 +68,32 @@ public class WatermarkMainWindow {
 	 */
 	private JMenu myFileMenu;
 	
+	/**
+	 * JMenuItem for selecting an image
+	 */
 	private JMenuItem myOpenImageItem;
 	
+	/**
+	 * JMenuItem for saving an image
+	 */
 	private JMenuItem mySaveImageItem;
 	
+	/**
+	 * JMenuItem for closing the window
+	 */
 	private JMenuItem myCloseWindowItem;
 	
+	/**
+	 * The text field for the user input
+	 */
+	private JTextField myWatermarkText;
+	
+	/**
+	 * Slider for the opacity of the watermark
+	 */
+	private JSlider myOpacitySlider;
+	
+	private JButton myCreateWatermarkButton;
 	
 	public static void main(String[] Args) {
 		new WatermarkMainWindow();
@@ -79,6 +107,7 @@ public class WatermarkMainWindow {
 		myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         myFrame.setSize(1000, 750);
         myFrame.setLocationRelativeTo(null);
+        myFrame.setResizable(false);
         
         myMenuBar = new JMenuBar();
         
@@ -98,6 +127,44 @@ public class WatermarkMainWindow {
         
         
         myButtonPanel = new JPanel();
+        myButtonPanel.setLayout(new GridBagLayout());
+        GridBagConstraints constraint = new GridBagConstraints();
+        
+        JLabel enterTextJLabel = new JLabel("Enter the text");
+        myButtonPanel.add(enterTextJLabel);
+        
+        
+        
+        
+        //constraint.fill = GridBagConstraints.HORIZONTAL;
+        constraint.gridx = 0;
+        constraint.gridy = 1;
+        constraint.insets = new Insets(10,0,0,0);
+        
+        myWatermarkText = new JTextField(30);
+        myWatermarkText.setEditable(true);
+        myWatermarkText.setMaximumSize(myWatermarkText.getPreferredSize());
+        myButtonPanel.add(myWatermarkText, constraint);
+        
+        JLabel opacityLabel = new JLabel("Opacity slider (0 is invisible)");
+        constraint.gridy = 2;
+        myButtonPanel.add(opacityLabel,constraint);
+        
+        myOpacitySlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
+        myOpacitySlider.setMajorTickSpacing(20);
+        myOpacitySlider.setPaintTicks(true);
+        myOpacitySlider.setPaintLabels(true);
+        constraint.gridy = 3;
+        constraint.insets = new Insets(0, 0, 0, 0);
+        //constraint.gridwidth = 5;
+        
+        myButtonPanel.add(myOpacitySlider, constraint);
+        
+        myCreateWatermarkButton = new JButton("Create Watermark");
+        constraint.gridy = 4;
+        constraint.insets = new Insets(10, 0, 10, 0);
+        
+        myButtonPanel.add(myCreateWatermarkButton, constraint);
         
         myImagePanel = new JPanel();
         myImagePanel.add(myImageDisplay);
