@@ -246,11 +246,11 @@ public class WatermarkMainWindow {
 		} else if (myWatermarkText.getText().length() <= 0){
 			JOptionPane.showMessageDialog(myFrame, "Please Enter Text");
 		} else {
-			CreateWaterMark cwm = new CreateWaterMark();
 			String textString = myWatermarkText.getText();
 			int opacityAmt = myOpacitySlider.getValue();
 			
-			myWatermarkedImage = cwm.createImageWatermark(deepCopyBufferedImage(myInputImage), opacityAmt, textString);
+			myWatermarkedImage = CreateWaterMark.createImageWatermark(deepCopyBufferedImage(myInputImage), 
+					opacityAmt, textString);
 			setLabelImage(myWatermarkedImage);
 		}
 	}
