@@ -1,22 +1,16 @@
 package watermarkgui;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image;
 import java.awt.Insets;
-import java.awt.MenuBar;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
-import java.security.KeyStore.PrivateKeyEntry;
 
 import javax.imageio.ImageIO;
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -25,11 +19,17 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.apache.commons.io.FilenameUtils;
 import org.imgscalr.Scalr;
+
+import watermarkcreation.CreateWaterMark;
 
 public class WatermarkMainWindow {
 	
@@ -79,11 +79,6 @@ public class WatermarkMainWindow {
 	private JMenuItem mySaveImageItem;
 	
 	/**
-	 * JMenuItem for closing the window
-	 */
-	private JMenuItem myCloseWindowItem;
-	
-	/**
 	 * The text field for the user input
 	 */
 	private JTextField myWatermarkText;
@@ -93,14 +88,31 @@ public class WatermarkMainWindow {
 	 */
 	private JSlider myOpacitySlider;
 	
+	/**
+	 * Button to call the createImageWatermark method
+	 */
 	private JButton myCreateWatermarkButton;
 	
+	/**
+	 * Holds the BufferedImage that has a watermark added
+	 */
+	private BufferedImage myWatermarkedImage;
+	
+	private String myImageExtension;
+	
 	public static void main(String[] Args) {
-		new WatermarkMainWindow();
+		SwingUtilities.invokeLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				new WatermarkMainWindow();
+				
+			}
+		});
 	}
 	
 	
-	private WatermarkMainWindow() {
+	public WatermarkMainWindow() {
 		myInputImage = null;
 		myImageDisplay = new JLabel();
 		myFrame = new JFrame("Watermark Creation");
@@ -119,6 +131,9 @@ public class WatermarkMainWindow {
         );
         
         mySaveImageItem = new JMenuItem("Save Image");
+        mySaveImageItem.addActionListener(e -> 
+        	saveImage()
+        );
         
         myFileMenu.add(myOpenImageItem);
         myFileMenu.add(mySaveImageItem);
@@ -134,9 +149,6 @@ public class WatermarkMainWindow {
         myButtonPanel.add(enterTextJLabel);
         
         
-        
-        
-        //constraint.fill = GridBagConstraints.HORIZONTAL;
         constraint.gridx = 0;
         constraint.gridy = 1;
         constraint.insets = new Insets(10,0,0,0);
@@ -156,11 +168,13 @@ public class WatermarkMainWindow {
         myOpacitySlider.setPaintLabels(true);
         constraint.gridy = 3;
         constraint.insets = new Insets(0, 0, 0, 0);
-        //constraint.gridwidth = 5;
         
         myButtonPanel.add(myOpacitySlider, constraint);
         
         myCreateWatermarkButton = new JButton("Create Watermark");
+        myCreateWatermarkButton.addActionListener(e -> 
+        	addWatermark()
+        );
         constraint.gridy = 4;
         constraint.insets = new Insets(10, 0, 10, 0);
         
@@ -176,6 +190,9 @@ public class WatermarkMainWindow {
 
 	}
 	
+	/**
+	 * Method to allow a user to choose the image they want to add the watermark to
+	 */
 	private void loadImage() {
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
@@ -183,24 +200,91 @@ public class WatermarkMainWindow {
 		
 		if(result == JFileChooser.APPROVE_OPTION) {
 			File imageFile = fileChooser.getSelectedFile();
+			myImageExtension =  FilenameUtils.getExtension(imageFile.toString());
+			
 			
 			try {
 				myInputImage = ImageIO.read(imageFile);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				JOptionPane.showMessageDialog(myFrame, "Something went wrong loading the image. Please try again");
 			}
 			
 			if(myInputImage != null) {
-				BufferedImage newImage = Scalr.resize(myInputImage, Scalr.Mode.AUTOMATIC, myFrame.getWidth()-100, myFrame.getHeight()-100);
-				myImageDisplay.setIcon(new ImageIcon(newImage));
-
+				setLabelImage(myInputImage);
 			}
 		}
 		
 		
 	}
 	
+	/**
+	 * Method to save the image with the watermark on it
+	 */
+	private void saveImage() {
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+		int results = fileChooser.showSaveDialog(fileChooser);
+		
+		if(results == JFileChooser.APPROVE_OPTION) {
+			File saveFile = fileChooser.getSelectedFile();
+			
+			try {
+				ImageIO.write(myWatermarkedImage, myImageExtension, saveFile);
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(myFrame, "Something went wrong saving the image. Please try again");
+			}
+		}
+		
+	}
 	
+	/**
+	 * Method to call the createImageWatermark method from CreateWaterMark.java class
+	 */
+	private void addWatermark() {
+		if(myInputImage == null) {
+			JOptionPane.showMessageDialog(myFrame, "Please Select an Image");
+		} else if (myWatermarkText.getText().length() <= 0){
+			JOptionPane.showMessageDialog(myFrame, "Please Enter Text");
+		} else {
+			CreateWaterMark cwm = new CreateWaterMark();
+			String textString = myWatermarkText.getText();
+			int opacityAmt = myOpacitySlider.getValue();
+			
+			myWatermarkedImage = cwm.createImageWatermark(deepCopyBufferedImage(myInputImage), opacityAmt, textString);
+			setLabelImage(myWatermarkedImage);
+		}
+	}
+	
+	/**
+	 * Scales the BufferedImage to fit on the screen and sets the myImageDisplay 
+	 * JLabel icon the the scaled image
+	 * @param theNewIconImage the new BufferedImage that is to be displayed on the screen
+	 */
+	private void setLabelImage(BufferedImage theNewIconImage) {
+		BufferedImage newImage;
+		
+		if(theNewIconImage.getHeight() >= theNewIconImage.getWidth()) {
+			newImage = Scalr.resize(theNewIconImage, Scalr.Mode.FIT_TO_HEIGHT, 
+					myImagePanel.getWidth()-100, myImagePanel.getHeight()-100);
+		} else {
+			newImage = Scalr.resize(theNewIconImage, Scalr.Mode.FIT_TO_WIDTH, 
+					myImagePanel.getWidth()-100, myImagePanel.getHeight()-100);
+		}
+		
+		myImageDisplay.setIcon(new ImageIcon(newImage));
+	}
+	
+	/**
+	 * Creates a deep copy of a BufferedImage
+	 * @param theImage The BufferedImage that you want copied
+	 * @return a copy of theImage
+	 */
+	private BufferedImage deepCopyBufferedImage(BufferedImage theImage) {
+		ColorModel newColorModel =  theImage.getColorModel();
+		Boolean newIsAlpha = theImage.isAlphaPremultiplied();
+		WritableRaster raster = theImage.copyData(null);
+		
+		return new BufferedImage(newColorModel, raster, newIsAlpha, null);
+	}
 	
 }

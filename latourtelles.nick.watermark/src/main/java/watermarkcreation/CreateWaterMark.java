@@ -19,43 +19,50 @@ public class CreateWaterMark {
 		
 	}
 	
-	public BufferedImage createImageWatermark() {
-		File imageFile = new File("C:\\Users\\Nick PC\\Desktop\\test.jpeg");
+	/**
+	 * Adds a watermark to an image
+	 * @param theImage a BufferedImage 
+	 * @param theOpacity
+	 * @param theText
+	 * @return
+	 */
+	public BufferedImage createImageWatermark(BufferedImage theImage, float theOpacity, String theText) {
 		
-		BufferedImage image = null;
+		int imageWidth = theImage.getWidth();
+		int imageHeight = theImage.getHeight();
 		
-		try {
-			image = ImageIO.read(imageFile);
-		} catch (Exception e) {
-			System.out.println("File not found");
-		}
+		float opacityModifier = theOpacity/100;
+
 		
-		int width = image.getWidth();
-		int height = image.getHeight();
+		Graphics2D graphicObject = theImage.createGraphics();
 		
-		Graphics2D graphicObject = image.createGraphics();
+		Font textFont = new Font("TimesRoman", Font.BOLD, 50);
 		
-		Font textFont = new Font("TimesRoman", Font.BOLD, 100);
-		
-		Composite newComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .8f);
+		Composite newComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacityModifier);
 		
 		graphicObject.setComposite(newComposite);
 		
 		graphicObject.setFont(textFont);
-		String messageString = "Test Watermark";
 		
 		FontMetrics fontMetrics = graphicObject.getFontMetrics();
-	    int stringWidth = fontMetrics.stringWidth(messageString);
+	    int stringWidth = fontMetrics.stringWidth(theText);
 	    int stringHeight = fontMetrics.getAscent();
 		
-	    graphicObject.setPaint(Color.black);
-	    graphicObject.drawString(messageString, (width - stringWidth)/2 , height / 2 + stringHeight / 4);
+	   // graphicObject.rotate(-Math.toRadians(45));
+	    
+	    graphicObject.setPaint(Color.gray);
+	    
+	    //graphicObject.drawString(theText, (imageWidth - stringWidth)/2 , imageHeight / 2 + stringHeight / 4);
 		
-		
+		for(int i = 0; i < imageWidth; i = i + stringWidth + 300) {
+			for(int j = 0 + stringHeight; j< imageHeight; j = j + stringHeight + 200) {
+				graphicObject.drawString(theText, i , j);
+			}
+		}
 		
 		
 		graphicObject.dispose();
 		
-		return image;
+		return theImage;
 	}
 }
