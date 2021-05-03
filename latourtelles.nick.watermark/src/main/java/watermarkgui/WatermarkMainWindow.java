@@ -1,14 +1,21 @@
 package watermarkgui;
 
 import java.awt.BorderLayout;
+import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
+import java.awt.List;
+import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.awt.image.ImageObserver;
+import java.awt.image.ImageProducer;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -24,10 +31,14 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.input.WindowsLineEndingInputStream;
 import org.imgscalr.Scalr;
+
+import com.formdev.flatlaf.FlatLightLaf;
 
 import watermarkcreation.CreateWaterMark;
 
@@ -98,11 +109,21 @@ public class WatermarkMainWindow {
 	 */
 	private BufferedImage myWatermarkedImage;
 	
+	private JLabel myEnterTextJLabel;
+	
+	private JLabel myOpacityLabel;
+	
 	private String myImageExtension;
 	
 	public static void main(String[] Args) {
+		try {
+		    UIManager.setLookAndFeel( "com.formdev.flatlaf.FlatDarkLaf");
+		} catch( Exception ex ) {
+		    System.err.println( "Failed to initialize LaF" );
+		}
+		
 		SwingUtilities.invokeLater(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				new WatermarkMainWindow();
@@ -120,6 +141,15 @@ public class WatermarkMainWindow {
         myFrame.setSize(1000, 750);
         myFrame.setLocationRelativeTo(null);
         myFrame.setResizable(false);
+        
+        ArrayList<Image> iconsList = new ArrayList<>();
+		try {
+			iconsList.add(ImageIO.read(new File("./src/icon/waterdrop.png")));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		myFrame.setIconImages(iconsList);
         
         myMenuBar = new JMenuBar();
         
@@ -145,8 +175,8 @@ public class WatermarkMainWindow {
         myButtonPanel.setLayout(new GridBagLayout());
         GridBagConstraints constraint = new GridBagConstraints();
         
-        JLabel enterTextJLabel = new JLabel("Enter the text");
-        myButtonPanel.add(enterTextJLabel);
+        myEnterTextJLabel = new JLabel("Enter the text");
+        myButtonPanel.add(myEnterTextJLabel);
         
         
         constraint.gridx = 0;
@@ -158,9 +188,9 @@ public class WatermarkMainWindow {
         myWatermarkText.setMaximumSize(myWatermarkText.getPreferredSize());
         myButtonPanel.add(myWatermarkText, constraint);
         
-        JLabel opacityLabel = new JLabel("Opacity slider (0 is invisible)");
+        myOpacityLabel = new JLabel("Opacity slider (0 is invisible)");
         constraint.gridy = 2;
-        myButtonPanel.add(opacityLabel,constraint);
+        myButtonPanel.add(myOpacityLabel,constraint);
         
         myOpacitySlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
         myOpacitySlider.setMajorTickSpacing(20);
@@ -183,8 +213,11 @@ public class WatermarkMainWindow {
         myImagePanel = new JPanel();
         myImagePanel.add(myImageDisplay);
         
+        
         myFrame.getContentPane().add(BorderLayout.SOUTH, myButtonPanel);
         myFrame.getContentPane().add(BorderLayout.CENTER, myImagePanel);
+        
+        disableButtonPanelComponents();
         
         myFrame.setVisible(true);
 
@@ -211,6 +244,7 @@ public class WatermarkMainWindow {
 			
 			if(myInputImage != null) {
 				setLabelImage(myInputImage);
+				enableButtonPanelComponents();
 			}
 		}
 		
@@ -235,6 +269,28 @@ public class WatermarkMainWindow {
 			}
 		}
 		
+	}
+	
+	/**
+	 * Disables all of the options for creating the watermarks
+	 */
+	private void disableButtonPanelComponents() {
+		myEnterTextJLabel.setEnabled(false);
+		myWatermarkText.setEnabled(false);
+		myOpacityLabel.setEnabled(false);
+		myOpacitySlider.setEnabled(false);
+		myCreateWatermarkButton.setEnabled(false);
+	}
+	
+	/**
+	 * Enables all of the options for creating the watermarks
+	 */
+	private void enableButtonPanelComponents() {
+		myEnterTextJLabel.setEnabled(true);
+		myWatermarkText.setEnabled(true);
+		myOpacityLabel.setEnabled(true);
+		myOpacitySlider.setEnabled(true);
+		myCreateWatermarkButton.setEnabled(true);
 	}
 	
 	/**
