@@ -1,22 +1,20 @@
+/**
+ * Nicholas La Tour-Telles
+ * 5-3-21
+ */
 package watermarkgui;
 
 import java.awt.BorderLayout;
-import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
-import java.awt.List;
-import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
-import java.awt.image.ImageObserver;
-import java.awt.image.ImageProducer;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -32,14 +30,8 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.input.WindowsLineEndingInputStream;
 import org.imgscalr.Scalr;
-
-import com.formdev.flatlaf.FlatLightLaf;
-
 import watermarkcreation.CreateWaterMark;
 
 public class WatermarkMainWindow {
@@ -109,10 +101,19 @@ public class WatermarkMainWindow {
 	 */
 	private BufferedImage myWatermarkedImage;
 	
+	/**
+	 * The JLabel for the string "Enter the text"
+	 */
 	private JLabel myEnterTextJLabel;
 	
+	/**
+	 * The JLabel for the string "Opacity slider (0 is invisible)"
+	 */
 	private JLabel myOpacityLabel;
 	
+	/**
+	 * The file extension of the image that was input
+	 */
 	private String myImageExtension;
 	
 	public static void main(String[] Args) {
@@ -136,23 +137,26 @@ public class WatermarkMainWindow {
 	public WatermarkMainWindow() {
 		myInputImage = null;
 		myImageDisplay = new JLabel();
+		
+		//Setting up the frame
 		myFrame = new JFrame("Watermark Creation");
 		myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         myFrame.setSize(1000, 750);
         myFrame.setLocationRelativeTo(null);
         myFrame.setResizable(false);
         
+        //Setting the frame icon
         ArrayList<Image> iconsList = new ArrayList<>();
 		try {
-			iconsList.add(ImageIO.read(new File("./src/icon/waterdrop.png")));
+			iconsList.add(ImageIO.read(new File("./src/icon/waterdrop.PNG")));
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		myFrame.setIconImages(iconsList);
         
+		
+		//Setting up the menu bar and the menu
         myMenuBar = new JMenuBar();
-        
         myFileMenu = new JMenu("File");
         
         myOpenImageItem = new JMenuItem("Open Image");
@@ -170,11 +174,12 @@ public class WatermarkMainWindow {
         myMenuBar.add(myFileMenu);
         myFrame.setJMenuBar(myMenuBar);
         
-        
+        //Setting up the button panel
         myButtonPanel = new JPanel();
         myButtonPanel.setLayout(new GridBagLayout());
         GridBagConstraints constraint = new GridBagConstraints();
         
+        //Setting up the textbox, slider, and button on myButtonPanel
         myEnterTextJLabel = new JLabel("Enter the text");
         myButtonPanel.add(myEnterTextJLabel);
         
@@ -212,7 +217,6 @@ public class WatermarkMainWindow {
         
         myImagePanel = new JPanel();
         myImagePanel.add(myImageDisplay);
-        
         
         myFrame.getContentPane().add(BorderLayout.SOUTH, myButtonPanel);
         myFrame.getContentPane().add(BorderLayout.CENTER, myImagePanel);
